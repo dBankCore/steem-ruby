@@ -1,7 +1,7 @@
 require 'bundler/gem_tasks'
 require 'rake/testtask'
 require 'yard'
-require 'steem'
+require 'dpay'
 
 Rake::TestTask.new(test: ['clean:vcr', 'test:threads']) do |t|
   t.libs << 'test'
@@ -25,15 +25,15 @@ namespace :test do
     t.libs << 'test'
     t.libs << 'lib'
     t.test_files = [
-      'test/steem/account_by_key_api_test.rb',
-      'test/steem/account_history_api_test.rb',
-      'test/steem/block_api_test.rb',
-      'test/steem/database_api_test.rb',
-      'test/steem/follow_api_test.rb',
-      'test/steem/jsonrpc_test.rb',
-      'test/steem/market_history_api_test.rb',
-      'test/steem/tags_api_test.rb',
-      'test/steem/witness_api_test.rb'
+      'test/dpay/account_by_key_api_test.rb',
+      'test/dpay/account_history_api_test.rb',
+      'test/dpay/block_api_test.rb',
+      'test/dpay/database_api_test.rb',
+      'test/dpay/follow_api_test.rb',
+      'test/dpay/jsonrpc_test.rb',
+      'test/dpay/market_history_api_test.rb',
+      'test/dpay/tags_api_test.rb',
+      'test/dpay/witness_api_test.rb'
     ]
     t.ruby_opts << if ENV['HELL_ENABLED']
       '-W2'
@@ -41,7 +41,7 @@ namespace :test do
       '-W1'
     end
   end
-  
+
   Rake::TestTask.new(broadcast: 'clean:vcr') do |t|
     t.description = <<-EOD
       Run broadcast tests, which are those that only use network_broadcast_api
@@ -50,8 +50,8 @@ namespace :test do
     t.libs << 'test'
     t.libs << 'lib'
     t.test_files = [
-      'test/steem/broadcast_test.rb',
-      'test/steem/transaction_builder_test.rb'
+      'test/dpay/broadcast_test.rb',
+      'test/dpay/transaction_builder_test.rb'
     ]
     t.ruby_opts << if ENV['HELL_ENABLED']
       '-W2'
@@ -59,7 +59,7 @@ namespace :test do
       '-W1'
     end
   end
-  
+
   Rake::TestTask.new(testnet: 'clean:vcr') do |t|
     t.description = <<-EOD
       Run testnet tests, which are those that use network_broadcast_api to do
@@ -68,7 +68,7 @@ namespace :test do
     t.libs << 'test'
     t.libs << 'lib'
     t.test_files = [
-      'test/steem/testnet_test.rb'
+      'test/dpay/testnet_test.rb'
     ]
     t.ruby_opts << if ENV['HELL_ENABLED']
       '-W2'
@@ -76,58 +76,58 @@ namespace :test do
       '-W1'
     end
   end
-  
+
   desc 'Tests the API using multiple threads.'
   task :threads do
     next if !!ENV['TEST']
-    
+
     threads = []
-    api = Steem::Api.new(url: ENV['TEST_NODE'])
-    database_api = Steem::DatabaseApi.new(url: ENV['TEST_NODE'])
+    api = DPay::Api.new(url: ENV['TEST_NODE'])
+    database_api = DPay::DatabaseApi.new(url: ENV['TEST_NODE'])
     witnesses = {}
     keys = %i(created url total_missed props running_version
       hardfork_version_vote hardfork_time_vote)
-    
+
     if defined? Thread.report_on_exception
       Thread.report_on_exception = true
     end
-    
+
     database_api.get_active_witnesses do |result|
       print "Found #{result.witnesses.size} witnesses ..."
-      
+
       result.witnesses.each do |witness_name|
         threads << Thread.new do
           api.get_witness_by_account(witness_name) do |witness|
             witnesses[witness.owner] = witness.map do |k, v|
               [k, v] if keys.include? k.to_sym
             end.compact.to_h
-            
-            sbd_exchange_rate = witness[:sbd_exchange_rate]
-            base = sbd_exchange_rate[:base].to_f
-            
-            if (quote = sbd_exchange_rate[:quote].to_f) > 0
+
+            bbd_exchange_rate = witness[:bbd_exchange_rate]
+            base = bbd_exchange_rate[:base].to_f
+
+            if (quote = bbd_exchange_rate[:quote].to_f) > 0
               rate = (base / quote).round(3)
-              witnesses[witness.owner][:sbd_exchange_rate] = rate
+              witnesses[witness.owner][:bbd_exchange_rate] = rate
             else
-              witnesses[witness.owner][:sbd_exchange_rate] = nil
+              witnesses[witness.owner][:bbd_exchange_rate] = nil
             end
-            
-            last_sbd_exchange_update = witness[:last_sbd_exchange_update]
-            last_sbd_exchange_update = Time.parse(last_sbd_exchange_update + 'Z')
-            last_sbd_exchange_elapsed = '%.2f hours ago' % ((Time.now.utc - last_sbd_exchange_update) / 60)
-            witnesses[witness.owner][:last_sbd_exchange_elapsed] = last_sbd_exchange_elapsed
+
+            last_bbd_exchange_update = witness[:last_bbd_exchange_update]
+            last_bbd_exchange_update = Time.parse(last_bbd_exchange_update + 'Z')
+            last_bbd_exchange_elapsed = '%.2f hours ago' % ((Time.now.utc - last_bbd_exchange_update) / 60)
+            witnesses[witness.owner][:last_bbd_exchange_elapsed] = last_bbd_exchange_elapsed
           end
         end
       end
     end
-    
+
     threads.each do |thread|
       print '.'
       thread.join
     end
-    
+
     puts ' done!'
-    
+
     if threads.size != witnesses.size
       puts "Bug: expected #{threads.size} witnesses, only found #{witnesses.size}."
     else
@@ -135,142 +135,142 @@ namespace :test do
     end
   end
 end
-  
+
 namespace :stream do
   desc 'Test the ability to stream a block range.'
   task :block_range, [:mode, :at_block_num] do |t, args|
     mode = (args[:mode] || 'irreversible').to_sym
     first_block_num = args[:at_block_num].to_i if !!args[:at_block_num]
-    stream = Steem::Stream.new(url: ENV['TEST_NODE'], mode: mode)
-    api = Steem::Api.new(url: ENV['TEST_NODE'])
+    stream = DPay::Stream.new(url: ENV['TEST_NODE'], mode: mode)
+    api = DPay::Api.new(url: ENV['TEST_NODE'])
     last_block_num = nil
     last_timestamp = nil
     range_complete = false
-    
+
     api.get_dynamic_global_properties do |properties|
       current_block_num = if mode == :head
         properties.head_block_number
       else
         properties.last_irreversible_block_num
       end
-      
+
       # First pass replays latest a random number of blocks to test chunking.
       first_block_num ||= current_block_num - (rand * 200).to_i
-      
+
       range = first_block_num..current_block_num
       puts "Initial block range: #{range.size}"
-      
+
       stream.blocks(at_block_num: range.first) do |block, block_num|
         current_timestamp = Time.parse(block.timestamp + 'Z')
-        
+
         if !range_complete && block_num > range.last
           puts 'Done with initial range.'
           range_complete = true
         end
-        
+
         if !!last_timestamp && block_num != last_block_num + 1
           puts "Bug: Last block number was #{last_block_num} then jumped to: #{block_num}"
           exit
         end
-        
+
         if !!last_timestamp && current_timestamp < last_timestamp
           puts "Bug: Went back in time.  Last timestamp was #{last_timestamp}, then jumped back to #{current_timestamp}"
           exit
         end
-        
+
         puts "\t#{block_num} Timestamp: #{current_timestamp}, witness: #{block.witness}"
         last_block_num = block_num
         last_timestamp = current_timestamp
       end
     end
   end
-  
+
   desc 'Test the ability to stream a block range of transactions.'
   task :trx_range, [:mode, :at_block_num] do |t, args|
     mode = (args[:mode] || 'irreversible').to_sym
     first_block_num = args[:at_block_num].to_i if !!args[:at_block_num]
-    stream = Steem::Stream.new(url: ENV['TEST_NODE'], mode: mode)
-    api = Steem::Api.new(url: ENV['TEST_NODE'])
-    
+    stream = DPay::Stream.new(url: ENV['TEST_NODE'], mode: mode)
+    api = DPay::Api.new(url: ENV['TEST_NODE'])
+
     api.get_dynamic_global_properties do |properties|
       current_block_num = if mode == :head
         properties.head_block_number
       else
         properties.last_irreversible_block_num
       end
-      
+
       # First pass replays latest a random number of blocks to test chunking.
       first_block_num ||= current_block_num - (rand * 200).to_i
-      
+
       stream.transactions(at_block_num: first_block_num) do |trx, trx_id, block_num|
         puts "#{block_num} :: #{trx_id}; ops: #{trx.operations.map(&:type).join(', ')}"
       end
     end
   end
-  
+
   desc 'Test the ability to stream a block range of operations.'
   task :op_range, [:mode, :at_block_num] do |t, args|
     mode = (args[:mode] || 'irreversible').to_sym
     first_block_num = args[:at_block_num].to_i if !!args[:at_block_num]
-    stream = Steem::Stream.new(url: ENV['TEST_NODE'], mode: mode)
-    api = Steem::Api.new(url: ENV['TEST_NODE'])
-    
+    stream = DPay::Stream.new(url: ENV['TEST_NODE'], mode: mode)
+    api = DPay::Api.new(url: ENV['TEST_NODE'])
+
     api.get_dynamic_global_properties do |properties|
       current_block_num = if mode == :head
         properties.head_block_number
       else
         properties.last_irreversible_block_num
       end
-      
+
       # First pass replays latest a random number of blocks to test chunking.
       first_block_num ||= current_block_num - (rand * 200).to_i
-      
+
       stream.operations(at_block_num: first_block_num) do |op, trx_id, block_num|
         puts "#{block_num} :: #{trx_id}; op: #{op.type}"
       end
     end
   end
-  
+
   desc 'Test the ability to stream a block range of virtual operations.'
   task :vop_range, [:mode, :at_block_num] do |t, args|
     mode = (args[:mode] || 'irreversible').to_sym
     first_block_num = args[:at_block_num].to_i if !!args[:at_block_num]
-    stream = Steem::Stream.new(url: ENV['TEST_NODE'], mode: mode)
-    api = Steem::Api.new(url: ENV['TEST_NODE'])
-    
+    stream = DPay::Stream.new(url: ENV['TEST_NODE'], mode: mode)
+    api = DPay::Api.new(url: ENV['TEST_NODE'])
+
     api.get_dynamic_global_properties do |properties|
       current_block_num = if mode == :head
         properties.head_block_number
       else
         properties.last_irreversible_block_num
       end
-      
+
       # First pass replays latest a random number of blocks to test chunking.
       first_block_num ||= current_block_num - (rand * 200).to_i
-      
+
       stream.operations(at_block_num: first_block_num, only_virtual: true) do |op, trx_id, block_num|
         puts "#{block_num} :: #{trx_id}; op: #{op.type}"
       end
     end
   end
-  
+
   desc 'Test the ability to stream a block range of all operations (including virtual).'
   task :all_op_range, [:mode, :at_block_num] do |t, args|
     mode = (args[:mode] || 'irreversible').to_sym
     first_block_num = args[:at_block_num].to_i if !!args[:at_block_num]
-    stream = Steem::Stream.new(url: ENV['TEST_NODE'], mode: mode)
-    api = Steem::Api.new(url: ENV['TEST_NODE'])
-    
+    stream = DPay::Stream.new(url: ENV['TEST_NODE'], mode: mode)
+    api = DPay::Api.new(url: ENV['TEST_NODE'])
+
     api.get_dynamic_global_properties do |properties|
       current_block_num = if mode == :head
         properties.head_block_number
       else
         properties.last_irreversible_block_num
       end
-      
+
       # First pass replays latest a random number of blocks to test chunking.
       first_block_num ||= current_block_num - (rand * 200).to_i
-      
+
       stream.operations(at_block_num: first_block_num, include_virtual: true) do |op, trx_id, block_num|
         puts "#{block_num} :: #{trx_id}; op: #{op.type}"
       end
@@ -284,9 +284,9 @@ end
 
 task default: :test
 
-desc 'Ruby console with steem already required.'
+desc 'Ruby console with dpay already required.'
 task :console do
-  exec 'irb -r steem -I ./lib'
+  exec 'irb -r dpay -I ./lib'
 end
 
 namespace :clean do
@@ -301,7 +301,7 @@ namespace :show do
   desc 'Shows known API names.'
   task :apis do
     url = ENV['URL']
-    jsonrpc = Steem::Jsonrpc.new(url: url)
+    jsonrpc = DPay::Jsonrpc.new(url: url)
     api_methods = jsonrpc.get_api_methods
     puts api_methods.keys
   end
@@ -309,7 +309,7 @@ namespace :show do
   desc 'Shows known method names for specified API.'
   task :methods, [:api] do |t, args|
     url = ENV['URL']
-    jsonrpc = Steem::Jsonrpc.new(url: url)
+    jsonrpc = DPay::Jsonrpc.new(url: url)
     api_methods = jsonrpc.get_api_methods
     api_methods[args[:api]].each do |method|
       jsonrpc.get_signature(method: "#{args[:api]}.#{method}") do |signature|

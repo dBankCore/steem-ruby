@@ -1,7 +1,7 @@
 
 # Contributing
 
-Everyone is welcome to contribute code to Steemit, Inc. projects. We have a Code of Conduct;
+Everyone is welcome to contribute code to dPay DAO projects. We have a Code of Conduct;
 we ask that you please follow it in all your interactions with our team and your fellow
 contributors.
 
@@ -10,7 +10,7 @@ Please note that this contributing guide only applies to our development presenc
 ## How to contribute
 
 1. File an issue describing the problem you would like to
-   solve or the feature you would like to add. It saves unnecessary work on your part, 
+   solve or the feature you would like to add. It saves unnecessary work on your part,
    in case there's a nontechnical reason we can't accept a particular change.
    Please note that we can and will _automatically close all pull requests that do not refer to
    an issue_.
@@ -30,7 +30,7 @@ Again, please note that this Code of Conduct _only applies to our development pr
 
 ### Our Pledge
 
-We welcome your membership in our project and community under the rules that we have set below. 
+We welcome your membership in our project and community under the rules that we have set below.
 
 In the interest of fostering an open and welcoming environment, we as
 contributors and maintainers will work to make your participation in
@@ -59,12 +59,12 @@ but is not limited to:
 1.  Rejecting contributions
 2.  Removing comments, commits, code, wiki edits, and issues
 3.  Banning abusers
- 
+
 We will clarify standards of acceptable behavior and we will take appropriate
 and fair corrective action in response to any instances of unacceptable behavior.
 
 Instances of abusive, harassing, or otherwise unacceptable behavior may be
-reported by contacting us at github.abuse@steemit.com. All
+reported by contacting us at github.abuse@dpays.io. All
 complaints will be reviewed and investigated and will result in a response that
 is deemed necessary and appropriate to the circumstances. We
 maintain strict confidentiality with regard to the reporter of an incident.

@@ -1,21 +1,21 @@
-[![Gem Version](https://badge.fury.io/rb/steem-ruby.svg)](https://badge.fury.io/rb/steem-ruby)
-[![Inline docs](http://inch-ci.org/github/steemit/steem-ruby.svg?branch=master&style=shields)](http://inch-ci.org/github/steemit/steem-ruby)
+[![Gem Version](https://badge.fury.io/rb/dpay-ruby.svg)](https://badge.fury.io/rb/dpay-ruby)
+[![Inline docs](http://inch-ci.org/github/dpays/dpay-ruby.svg?branch=master&style=shields)](http://inch-ci.org/github/dpays/dpay-ruby)
 
-# `steem-ruby`
+# `dpay-ruby`
 
-Steem-ruby the Ruby API for Steem blockchain.
+DPay-ruby the Ruby API for DPay blockchain.
 
-Full documentation: http://www.rubydoc.info/gems/steem-ruby
+Full documentation: http://www.rubydoc.info/gems/dpay-ruby
 
 **Note:** *This library depends on AppBase methods that are a work in progress.*
 
-## `radiator` vs. `steem-ruby`
+## `radiator` vs. `dpay-ruby`
 
-The `steem-ruby` gem was written from the ground up by `@inertia`, who is also the author of [`radiator`](https://github.com/inertia186/radiator).
+The `dpay-ruby` gem was written from the ground up by `@inertia`, who is also the author of [`radiator`](https://github.com/inertia186/radiator).
 
-> "I intend to continue work on `radiator` indefinitely. But in `radiator-0.5`, I intend to refactor `radiator` so that is uses `steem-ruby` as its core. This means that some features of `radiator` like Serialization will become redundant. I think it's still useful for radiator to do its own serialization because it reduces the number of API requests." - @inertia
+> "I intend to continue work on `radiator` indefinitely. But in `radiator-0.5`, I intend to refactor `radiator` so that is uses `dpay-ruby` as its core. This means that some features of `radiator` like Serialization will become redundant. I think it's still useful for radiator to do its own serialization because it reduces the number of API requests." - @inertia
 
-| `radiator` | `steem-ruby` |
+| `radiator` | `dpay-ruby` |
 |-|-|
 | Has internal failover logic | Can have failover delegated externally |
 | Passes `error` responses to the caller | Handles `error` responses and raises exceptions |
@@ -27,7 +27,7 @@ The `steem-ruby` gem was written from the ground up by `@inertia`, who is also t
 
 ## Getting Started
 
-The steem-ruby gem is compatible with Ruby 2.2.5 or later.
+The dpay-ruby gem is compatible with Ruby 2.2.5 or later.
 
 ### Install the gem for your project
 
@@ -36,19 +36,19 @@ The steem-ruby gem is compatible with Ruby 2.2.5 or later.
 To install the gem on your computer, run in shell:
 
 ```bash
-gem install steem-ruby
+gem install dpay-ruby
 ```
 
 ... then add in your code:
 
 ```ruby
-require 'steem'
+require 'dpay'
 ```
 
 To add the gem as a dependency to your project with [Bundler](http://bundler.io/), you can add this line in your Gemfile:
 
 ```ruby
-gem 'steem-ruby', require: 'steem'
+gem 'dpay-ruby', require: 'dpay'
 ```
 
 ## Examples
@@ -63,19 +63,19 @@ params = {
   weight: weight
 }
 
-Steem::Broadcast.vote(wif: wif, params: params) do |result|
+DPay::Broadcast.vote(wif: wif, params: params) do |result|
   puts result
 end
 ```
 
-*See: [Broadcast](https://www.rubydoc.info/gems/steem-ruby/Steem/Broadcast)*
+*See: [Broadcast](https://www.rubydoc.info/gems/dpay-ruby/DPay/Broadcast)*
 
 ### Streaming
 
 The value passed to the block is an object, with the keys: `:type` and `:value`.
 
 ```ruby
-stream = Steem::Stream.new
+stream = DPay::Stream.new
 
 stream.operations do |op|
   puts "#{op.type}: #{op.value}"
@@ -85,7 +85,7 @@ end
 To start a stream from a specific block number, pass it as an argument:
 
 ```ruby
-stream = Steem::Stream.new
+stream = DPay::Stream.new
 
 stream.operations(at_block_num: 9001) do |op|
   puts "#{op.type}: #{op.value}"
@@ -95,7 +95,7 @@ end
 You can also grab the related transaction id and block number for each operation:
 
 ```ruby
-stream = Steem::Stream.new
+stream = DPay::Stream.new
 
 stream.operations do |op, trx_id, block_num|
   puts "#{block_num} :: #{trx_id}"
@@ -106,7 +106,7 @@ end
 To stream only certain operations:
 
 ```ruby
-stream = Steem::Stream.new
+stream = DPay::Stream.new
 
 stream.operations(types: :vote_operation) do |op|
   puts "#{op.type}: #{op.value}"
@@ -116,7 +116,7 @@ end
 Or pass an array of certain operations:
 
 ```ruby
-stream = Steem::Stream.new
+stream = DPay::Stream.new
 
 stream.operations(types: [:comment_operation, :vote_operation]) do |op|
   puts "#{op.type}: #{op.value}"
@@ -126,7 +126,7 @@ end
 Or (optionally) just pass the operation(s) you want as the only arguments.  This is semantic sugar for when you want specific types and take all of the defaults.
 
 ```ruby
-stream = Steem::Stream.new
+stream = DPay::Stream.new
 
 stream.operations(:vote_operation) do |op|
   puts "#{op.type}: #{op.value}"
@@ -136,7 +136,7 @@ end
 To also include virtual operations:
 
 ```ruby
-stream = Steem::Stream.new
+stream = DPay::Stream.new
 
 stream.operations(include_virtual: true) do |op|
   puts "#{op.type}: #{op.value}"
@@ -155,7 +155,7 @@ params = {
   weight: weight
 }
 
-Steem::Broadcast.vote(wif: [wif1, wif2], params: params) do |result|
+DPay::Broadcast.vote(wif: [wif1, wif2], params: params) do |result|
   puts result
 end
 ```
@@ -163,7 +163,7 @@ end
 In addition to signing with multiple `wif` private keys, it is possible to also export a partially signed transaction to have signing completed by someone else.
 
 ```ruby
-builder = Steem::TransactionBuilder.new(wif: wif1)
+builder = DPay::TransactionBuilder.new(wif: wif1)
 
 builder.put(vote: {
   voter: voter,
@@ -183,8 +183,8 @@ Then send the contents of `trx.json` to the other signing party so they can priv
 
 ```ruby
 trx = open('trx.json').read
-builder = Steem::TransactionBuilder.new(wif: wif2, trx: trx)
-api = Steem::CondenserApi.new
+builder = DPay::TransactionBuilder.new(wif: wif2, trx: trx)
+api = DPay::CondenserApi.new
 trx = builder.transaction
 api.broadcast_transaction_synchronous(trx: trx)
 ```
@@ -192,28 +192,28 @@ api.broadcast_transaction_synchronous(trx: trx)
 ### Get Accounts
 
 ```ruby
-api = Steem::DatabaseApi.new
+api = DPay::DatabaseApi.new
 
-api.find_accounts(accounts: ['steemit', 'alice']) do |result|
+api.find_accounts(accounts: ['dsite', 'alice']) do |result|
   puts result.accounts
 end
 ```
 
-*See: [Api](https://www.rubydoc.info/gems/steem-ruby/Steem/Api)*
+*See: [Api](https://www.rubydoc.info/gems/dpay-ruby/DPay/Api)*
 
 ### Reputation Formatter
 
 ```ruby
-rep = Steem::Formatter.reputation(account.reputation)
+rep = DPay::Formatter.reputation(account.reputation)
 puts rep
 ```
 
 ### Tests
 
 * Clone the client repository into a directory of your choice:
-  * `git clone https://github.com/steemit/steem-ruby.git`
+  * `git clone https://github.com/dpays/dpay-ruby.git`
 * Navigate into the new folder
-  * `cd steem-ruby`
+  * `cd dpay-ruby`
 * All tests can be invoked as follows:
   * `bundle exec rake test`
 * To run `static` tests:
@@ -223,7 +223,7 @@ puts rep
 * To run `threads` tests (which quickly verifies thread safety):
   * `bundle exec rake test:threads`
 * To run `testnet` tests (which does actual broadcasts)
-  * `TEST_NODE=https://testnet.steemitdev.com bundle exec rake test:testnet`
+  * `TEST_NODE=https://testnet.dpays.io bundle exec rake test:testnet`
 
 You can also run other tests that are not part of the above `test` execution:
 
@@ -234,12 +234,12 @@ You can also run other tests that are not part of the above `test` execution:
 If you want to point to any node for tests, instead of letting the test suite pick the default, set the environment variable to `TEST_NODE`, e.g.:
 
 ```bash
-$ TEST_NODE=https://api.steemitdev.com bundle exec rake test
+$ TEST_NODE=https://testapi.dpays.io bundle exec rake test
 ```
 
 ## Contributions
 
-Patches are welcome! Contributors are listed in the `steem-ruby.gemspec` file. Please run the tests (`rake test`) before opening a pull request and make sure that you are passing all of them. If you would like to contribute, but don't know what to work on, check the issues list.
+Patches are welcome! Contributors are listed in the `dpay-ruby.gemspec` file. Please run the tests (`rake test`) before opening a pull request and make sure that you are passing all of them. If you would like to contribute, but don't know what to work on, check the issues list.
 
 ## Issues
 
